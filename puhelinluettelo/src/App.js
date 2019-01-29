@@ -1,28 +1,114 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react'
 
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
+const Filter = (props) => {
+
+  return (
+    <div>
+      rajaa näytettäviä: <input value={props.value} onChange={props.onChange} />
+    </div>
+  )
 }
 
-export default App;
+const PersonForm = (props) => {
+
+  return (
+    <div>
+      <form onSubmit={props.clickHandler}>
+        <div>
+          nimi: <input 
+            value={props.nameValue} 
+            onChange={props.nameChangeHandler}
+          />         
+        </div>
+        <div>
+          numero: <input 
+            value={props.numberValue} 
+            onChange={props.numberChangeHandler}
+          />           
+        </div>
+        <div>
+          <button type="submit">lisää</button>
+        </div>
+      </form>      
+    </div>
+  )
+}
+
+const Persons = (props) => {
+
+  const personsToShow = (props.restrictionValue === null)
+    ? props.persons
+    : props.persons.filter(person => person.name.toLowerCase().includes(props.restrictionValue))
+
+  return (
+    personsToShow.map(person => 
+      <p key={person.name}>{person.name} {person.number}</p>
+    )
+  )
+}
+
+const App = () => {
+  const [ persons, setPersons] = useState([
+    { name: 'Arto Hellas', number: '040-123456' },
+    { name: 'Martti Tienari', number: '040-123456' },
+    { name: 'Arto Järvinen', number: '040-123456' },
+    { name: 'Lea Kutvonen', number: '040-123456' }
+  ]) 
+  const [ newName, setNewName ] = useState('')
+  const [ newNumber, setNewNumber ] = useState('')
+  const [ newRestriction, SetNewRestriction ] = useState('')
+
+
+  const addPerson = (event) => {
+    event.preventDefault()
+    const personObject = {
+      name: newName,
+      number: newNumber
+    }
+
+    const names = persons.map(person =>
+      person.name
+    )
+
+    if (!names.includes(newName)) {
+      setPersons(persons.concat(personObject))
+      setNewName('')
+      setNewNumber('')
+    } else {
+      alert(`${newName} on jo luettelossa`)
+    }
+  }
+
+  const handleNameChange = (event) => {
+    setNewName(event.target.value)
+  }
+
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value)
+  }
+  
+  const handleRestrictionChange = (event) => {
+    SetNewRestriction(event.target.value)
+  }
+
+  return (
+    <div>
+      <h1>Puhelinluettelo</h1>
+      <Filter value={newRestriction} onChange={handleRestrictionChange} />
+      <h2>lisää uusi</h2>
+      <PersonForm nameValue={newName}
+        numberValue={newNumber} 
+        nameChangeHandler={handleNameChange}
+        numberChangeHandler={handleNumberChange}
+        clickHandler={addPerson}
+      />
+      <h2>Numerot</h2>
+      <div>
+        <Persons restrictionValue={newRestriction} persons={persons}/>
+      </div> 
+    </div>
+  )
+
+}
+
+export default App
