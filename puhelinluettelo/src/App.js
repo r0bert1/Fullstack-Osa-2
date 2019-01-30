@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import personService from './services/persons'
 import axios from 'axios'
-
+ 
 const Filter = (props) => {
 
   return (
@@ -42,8 +43,10 @@ const Persons = (props) => {
     : props.persons.filter(person => person.name.toLowerCase().includes(props.restrictionValue))
 
   return (
-    personsToShow.map(person => 
-      <p key={person.name}>{person.name} {person.number}</p>
+    personsToShow.map(person =>
+      <div key={person.name}>
+        {person.name} {person.number} <button onClick={() => props.clickHandler(person.id)}>poista</button>
+      </div> 
     )
   )
 }
@@ -55,10 +58,10 @@ const App = () => {
   const [ newRestriction, SetNewRestriction ] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
+    personService
+      .getAll()
+      .then(initialPersons => {
+        setPersons(initialPersons)
       })
   }, [])
 
@@ -74,11 +77,25 @@ const App = () => {
     )
 
     if (!names.includes(newName)) {
-      setPersons(persons.concat(personObject))
-      setNewName('')
-      setNewNumber('')
+      personService
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
     } else {
-      alert(`${newName} on jo luettelossa`)
+      const selected = persons.find(person => person.name === newName)
+
+      if (window.confirm(`${newName} on jo luettelossa, korvataanko vanha numero uudella?`)) {
+        axios
+          .put(`http://localhost:3001/persons/${selected.id}`, personObject)
+          .then(response => {
+            setPersons(persons.map(person => person.id !== selected.id ? person : response.data))
+            setNewName('')
+            setNewNumber('')
+          })
+      }
     }
   }
 
@@ -94,6 +111,18 @@ const App = () => {
     SetNewRestriction(event.target.value)
   }
 
+  const handleDeletion = (id) => {
+    const selected = persons.find(person => person.id === id)
+
+    if (window.confirm(`Poistetaanko ${selected.name}?`)) {
+      axios
+        .delete(`http://localhost:3001/persons/${id}`)
+        .then(
+          setPersons(persons.filter(person => person.id !== id))
+        )
+    }
+  }
+
   return (
     <div>
       <h1>Puhelinluettelo</h1>
@@ -107,7 +136,7 @@ const App = () => {
       />
       <h2>Numerot</h2>
       <div>
-        <Persons restrictionValue={newRestriction} persons={persons}/>
+        <Persons restrictionValue={newRestriction} persons={persons} clickHandler={handleDeletion}/>
       </div> 
     </div>
   )
