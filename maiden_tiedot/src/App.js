@@ -14,9 +14,11 @@ const BasicInfo = ({ country, weather }) => {
           <li key={language.name}>{language.name}</li>
         )}
       </ul>
-      <img src={country.flag} alt="flag" width="120" height="120"/>
+      <img src={country.flag} alt="flag" width="170" height="120"/>
       <h2>Weather in {country.capital}</h2>
-      <p>temperature: {weather.current.temp_c} </p>
+      <p><b>temperature:</b> {weather.current.temp_c} Celsius </p>
+      <img src={weather.current.condition.icon} alt="weather icon" width="60" height="60"/>
+      <p><b>wind:</b> {weather.current.wind_kph} kph, direction: {weather.current.wind_dir}</p>
     </div>
   )
 }
