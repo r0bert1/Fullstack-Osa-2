@@ -51,11 +51,53 @@ const Persons = (props) => {
   )
 }
 
+const Notification = ({ message, error }) => {
+  const errorStyle = {
+    color: 'red',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10
+  }
+
+  const notifStyle = {
+    color: 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10
+  }
+  
+  if (message === null) {
+    return null
+  }
+
+  if (error) {
+    return (
+      <div style={errorStyle}>
+        {message}
+      </div>
+    )
+  }
+
+  return (
+    <div style={notifStyle}>
+      {message}
+    </div>
+  )
+}
+
 const App = () => {
   const [ persons, setPersons] = useState([])
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
   const [ newRestriction, SetNewRestriction ] = useState('')
+  const [ message, setMessage] = useState(null)
+  const [ error, setError] = useState(false)
 
   useEffect(() => {
     personService
@@ -80,6 +122,10 @@ const App = () => {
       personService
         .create(personObject)
         .then(returnedPerson => {
+          setMessage(`Lisättiin ${newName}`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
@@ -92,8 +138,21 @@ const App = () => {
           .put(`http://localhost:3001/persons/${selected.id}`, personObject)
           .then(response => {
             setPersons(persons.map(person => person.id !== selected.id ? person : response.data))
+            setMessage(`Henkilön ${selected.name} numero vaihdettu`)
+            setTimeout(() => {
+              setMessage(null)
+            }, 5000)
             setNewName('')
             setNewNumber('')
+          })
+          .catch(error => {
+            setPersons(persons.filter(person => person.id !== selected.id))
+            setError(true)
+            setMessage(`Henkilö ${selected.name} oli jo poistettu`)
+            setTimeout(() => {
+              setMessage(null)
+              setError(false)
+            }, 5000)
           })
       }
     }
@@ -117,15 +176,21 @@ const App = () => {
     if (window.confirm(`Poistetaanko ${selected.name}?`)) {
       axios
         .delete(`http://localhost:3001/persons/${id}`)
-        .then(
+        .then(() => {
           setPersons(persons.filter(person => person.id !== id))
-        )
+          setMessage(`${selected.name} poistettu`)
+          setTimeout(() => {
+            setMessage(null)
+          }, 5000)
+        })
+
     }
   }
 
   return (
     <div>
       <h1>Puhelinluettelo</h1>
+      <Notification message={message} error={error} />
       <Filter value={newRestriction} onChange={handleRestrictionChange} />
       <h2>lisää uusi</h2>
       <PersonForm nameValue={newName}
