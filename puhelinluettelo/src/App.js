@@ -40,7 +40,7 @@ const Persons = (props) => {
 
   const personsToShow = (props.restrictionValue === null)
     ? props.persons
-    : props.persons.filter(person => person.name.toLowerCase().includes(props.restrictionValue))
+    : props.persons.filter(person => person.name.toLowerCase().includes(props.restrictionValue.toLowerCase()))
 
   return (
     personsToShow.map(person =>
@@ -135,7 +135,7 @@ const App = () => {
 
       if (window.confirm(`${newName} on jo luettelossa, korvataanko vanha numero uudella?`)) {
         axios
-          .put(`http://localhost:3001/persons/${selected.id}`, personObject)
+          .put(`http://localhost:3001/api/persons/${selected.id}`, personObject)
           .then(response => {
             setPersons(persons.map(person => person.id !== selected.id ? person : response.data))
             setMessage(`Henkilön ${selected.name} numero vaihdettu`)
@@ -174,8 +174,8 @@ const App = () => {
     const selected = persons.find(person => person.id === id)
 
     if (window.confirm(`Poistetaanko ${selected.name}?`)) {
-      axios
-        .delete(`http://localhost:3001/persons/${id}`)
+      personService
+        .remove(id)
         .then(() => {
           setPersons(persons.filter(person => person.id !== id))
           setMessage(`${selected.name} poistettu`)
