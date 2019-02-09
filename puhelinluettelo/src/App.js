@@ -129,6 +129,14 @@ const App = () => {
           setPersons(persons.concat(returnedPerson))
           setNewName('')
           setNewNumber('')
+        })  
+        .catch(error => {
+          setError(true)
+          setMessage(error.response.data.error)
+          setTimeout(() => {
+            setMessage(null)
+            setError(false)
+          }, 5000)
         })
     } else {
       const selected = persons.find(person => person.name === newName)
